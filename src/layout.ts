@@ -25,7 +25,7 @@ export function positionForNewSpoke(
   const startAngle = Math.PI * 0.15 // just past east, downward
   const endAngle = Math.PI * 0.85 // just before west, downward
   const slot = hubConnectionCount % SPOKE_SLOTS
-  const t = SPOKE_SLOTS === 1 ? 0.5 : slot / (SPOKE_SLOTS - 1)
+  const t = slot / (SPOKE_SLOTS - 1)
   const angle = startAngle + t * (endAngle - startAngle)
   return {
     x: hub.position.x + Math.cos(angle) * SPOKE_RADIUS,
