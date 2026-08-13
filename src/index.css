@@ -40,11 +40,12 @@ body,
 #root {
   margin: 0;
   padding: 0;
-  min-height: 100%;
+  height: 100%;
 }
 
 body {
   background: var(--page-bg);
+  overflow: hidden;
 }
 
 button {
@@ -52,26 +53,74 @@ button {
   color: inherit;
 }
 
-/* ------- 16:9 letterbox layout ------- */
+/* ------- Full-viewport layout ------- */
+/* Fills the browser or the Miro embed iframe (which will be 16:9). The world
+   layout inside is composed at 16:9 aspect so it feels right in both cases. */
 
 #root {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
 }
 
 .app {
   position: relative;
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  max-height: calc(100vh - 48px);
-  max-width: calc((100vh - 48px) * 16 / 9);
+  width: 100vw;
+  height: 100vh;
   background: var(--canvas-bg);
-  border-radius: 28px;
   overflow: hidden;
-  box-shadow: var(--shadow-app);
+}
+
+/* ------- Body layout: map region + persistent sidebar ------- */
+
+.app-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  height: 100%;
+}
+
+.map-region {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.map-canvas {
+  position: absolute;
+  top: 76px; /* reserved strip for the floating title chip so no node can be occluded */
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.side-panel {
+  width: clamp(240px, 24vw, 340px);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-left: 1px solid rgba(30, 60, 100, 0.06);
+  padding: 32px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 600px) {
+  .side-panel {
+    display: none;
+  }
+}
+
+.side-panel-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: center;
+  padding: 0 12px;
 }
 
 /* ------- Floating title chip ------- */
@@ -123,10 +172,7 @@ button {
 }
 
 .react-flow__attribution {
-  background: transparent;
-  color: var(--ink-soft);
-  font-size: 10px;
-  padding: 4px 8px;
+  display: none !important;
 }
 
 .react-flow__controls {
@@ -183,6 +229,20 @@ button {
     var(--shadow-card-hover);
 }
 
+.service-preview {
+  width: 100%;
+  height: 90px;
+  border-radius: 8px;
+  background: #eef2f8;
+  object-fit: cover;
+  /* Shift the crop down so we skip the GOV.UK cookie banner and land on the H1 / start button area. */
+  object-position: 50% 22%;
+  display: block;
+  margin-bottom: 10px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .service-dept-pill {
   display: inline-flex;
   align-items: center;
@@ -221,20 +281,26 @@ button {
   opacity: 0;
 }
 
-/* ------- Detail panel ------- */
+/* ------- Detail card (inside sidebar) ------- */
 
-.detail-panel {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  width: 320px;
-  max-width: calc(100% - 48px);
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 22px 22px 24px;
-  box-shadow: var(--shadow-app);
-  z-index: 10;
+.detail-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: #eef2f8;
+  object-fit: cover;
+  /* Skip the GOV.UK cookie banner — start the crop just below it. */
+  object-position: 50% 22%;
+  display: block;
+  margin-bottom: 18px;
+  user-select: none;
+  -webkit-user-drag: none;
+  box-shadow: 0 1px 2px rgba(30, 60, 100, 0.06);
 }
 
 .detail-dept {

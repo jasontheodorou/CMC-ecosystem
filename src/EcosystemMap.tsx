@@ -1,31 +1,55 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
   ReactFlow,
+  ReactFlowProvider,
   Controls,
+  useStore,
   type Edge,
   type Node,
 } from '@xyflow/react'
-import { AnimatePresence, motion } from 'framer-motion'
 import '@xyflow/react/dist/style.css'
-import { DEPTS, RELATIONSHIPS, SERVICES, type Service } from './data'
+import { RELATIONSHIPS, SERVICES } from './data'
 import { ServiceNode } from './ServiceNode'
 
 const nodeTypes = { service: ServiceNode }
 
-export function EcosystemMap() {
-  const [selectedId, setSelectedId] = useState<string | null>('ptax')
+// Layout centre — origin of the zoom-driven fan-out effect.
+const LAYOUT_CENTER = (() => {
+  const xs = SERVICES.map((s) => s.position.x)
+  const ys = SERVICES.map((s) => s.position.y)
+  return {
+    x: (Math.min(...xs) + Math.max(...xs)) / 2,
+    y: (Math.min(...ys) + Math.max(...ys)) / 2,
+  }
+})()
 
-  const nodes = useMemo<Node[]>(
-    () =>
-      SERVICES.map((service, index) => ({
-        id: service.id,
-        type: 'service',
-        position: service.position,
-        data: { service, index },
-        selected: service.id === selectedId,
-      })),
-    [selectedId],
-  )
+// How much extra outward spread per unit of zoom above 1.0. Gentle so nodes never
+// spread far past the initial fit — just enough to feel like Google-Maps clustering easing.
+const FAN_STRENGTH = 0.12
+
+interface EcosystemMapProps {
+  selectedId: string | null
+  onSelect: (id: string | null) => void
+}
+
+function MapContent({ selectedId, onSelect }: EcosystemMapProps) {
+  // Reactive to viewport zoom — nodes fan outward from LAYOUT_CENTER as you zoom in.
+  const zoom = useStore((state) => state.transform[2])
+
+  const nodes = useMemo<Node[]>(() => {
+    const fan = Math.max(0, zoom - 1) * FAN_STRENGTH
+    const scale = 1 + fan
+    return SERVICES.map((service, index) => ({
+      id: service.id,
+      type: 'service',
+      position: {
+        x: LAYOUT_CENTER.x + (service.position.x - LAYOUT_CENTER.x) * scale,
+        y: LAYOUT_CENTER.y + (service.position.y - LAYOUT_CENTER.y) * scale,
+      },
+      data: { service, index },
+      selected: service.id === selectedId,
+    }))
+  }, [zoom, selectedId])
 
   const edges = useMemo<Edge[]>(
     () =>
@@ -61,87 +85,36 @@ export function EcosystemMap() {
     [selectedId],
   )
 
-  const handleNodeClick = useCallback((_: unknown, node: Node) => {
-    setSelectedId(node.id)
-  }, [])
-
-  const selected = SERVICES.find((s) => s.id === selectedId) ?? null
-
-  const related = useMemo<Service[]>(() => {
-    if (!selected) return []
-    const ids = RELATIONSHIPS.filter(
-      (r) => r.source === selected.id || r.target === selected.id,
-    ).map((r) => (r.source === selected.id ? r.target : r.source))
-    return ids
-      .map((id) => SERVICES.find((s) => s.id === id))
-      .filter((s): s is Service => Boolean(s))
-  }, [selected])
+  const handleNodeClick = useCallback(
+    (_: unknown, node: Node) => onSelect(node.id),
+    [onSelect],
+  )
 
   return (
-    <div className="ecosystem-map">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={handleNodeClick}
-        onPaneClick={() => setSelectedId(null)}
-        fitView
-        fitViewOptions={{ padding: 0.15 }}
-        minZoom={0.3}
-        maxZoom={1.6}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable
-      >
-        <Controls showInteractive={false} position="bottom-right" />
-      </ReactFlow>
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodeClick={handleNodeClick}
+      onPaneClick={() => onSelect(null)}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.15 }}
+      minZoom={0.3}
+      maxZoom={2}
+      nodesDraggable={false}
+      nodesConnectable={false}
+      elementsSelectable
+      proOptions={{ hideAttribution: true }}
+    >
+      <Controls showInteractive={false} position="bottom-right" />
+    </ReactFlow>
+  )
+}
 
-      <AnimatePresence mode="wait">
-        {selected && (
-          <motion.aside
-            key={selected.id}
-            className="detail-panel"
-            style={{
-              ['--dept-color' as string]: DEPTS[selected.dept].color,
-              ['--dept-soft' as string]: DEPTS[selected.dept].soft,
-            }}
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
-          >
-            <div className="detail-dept">{DEPTS[selected.dept].label}</div>
-            <h2 className="detail-title">{selected.name}</h2>
-            <p className="detail-summary">{selected.summary}</p>
-            <a
-              className="detail-link"
-              href={selected.url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open on GOV.UK
-            </a>
-            {related.length > 0 && (
-              <div className="detail-related">
-                <div className="detail-related-heading">Connects to</div>
-                <ul>
-                  {related.map((r) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        className="related-link"
-                        onClick={() => setSelectedId(r.id)}
-                      >
-                        {r.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </motion.aside>
-        )}
-      </AnimatePresence>
-    </div>
+export function EcosystemMap(props: EcosystemMapProps) {
+  return (
+    <ReactFlowProvider>
+      <MapContent {...props} />
+    </ReactFlowProvider>
   )
 }

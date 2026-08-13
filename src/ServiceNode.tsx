@@ -2,6 +2,7 @@ import { Handle, Position } from '@xyflow/react'
 import type { Node, NodeProps } from '@xyflow/react'
 import { motion } from 'framer-motion'
 import { DEPTS, type Service } from './data'
+import { Preview } from './Preview'
 
 export type ServiceNodeType = Node<{ service: Service; index: number }, 'service'>
 
@@ -39,6 +40,7 @@ export function ServiceNode({ data, selected }: NodeProps<ServiceNodeType>) {
       whileHover={{ scale: 1.03 }}
     >
       <Handle type="target" position={Position.Left} className="service-handle" />
+      <Preview url={service.url} className="service-preview" />
       <span className="service-dept-pill">{dept.label}</span>
       <span className="service-name">{service.name}</span>
       <Handle type="source" position={Position.Right} className="service-handle" />

@@ -17,25 +17,32 @@ export interface Service {
   position: { x: number; y: number }
 }
 
-// Positions target a ~1400 × 800 canvas — organic clustering, not grid-aligned.
+// World layout composed at 16:9 aspect (x span ~1600, y span ~900) so it feels right
+// both on desktop and inside a 16:9 Miro embed. Spread lengthways, tighter vertically.
 export const SERVICES: Service[] = [
-  { id: 'uc',            name: 'Universal Credit',         dept: 'dwp',     url: 'https://www.gov.uk/universal-credit',                    summary: 'Monthly support for living costs if you’re on a low income or out of work.', position: { x: 180, y: 200 } },
-  { id: 'state-pension', name: 'Check your State Pension', dept: 'dwp',     url: 'https://www.gov.uk/check-state-pension',                summary: 'See how much State Pension you could get, when, and how to increase it.',    position: { x: 90,  y: 400 } },
-  { id: 'find-a-job',    name: 'Find a job',               dept: 'dwp',     url: 'https://www.gov.uk/find-a-job',                          summary: 'Search and apply for jobs across the UK.',                                    position: { x: 240, y: 580 } },
+  { id: 'uc',            name: 'Universal Credit',         dept: 'dwp',     url: 'https://www.gov.uk/universal-credit',                    summary: 'Monthly support for living costs if you’re on a low income or out of work.', position: { x: 250,  y: 230 } },
+  { id: 'state-pension', name: 'Check your State Pension', dept: 'dwp',     url: 'https://www.gov.uk/check-state-pension',                summary: 'See how much State Pension you could get, when, and how to increase it.',    position: { x: 120,  y: 505 } },
+  { id: 'find-a-job',    name: 'Find a job',               dept: 'dwp',     url: 'https://www.gov.uk/find-a-job',                          summary: 'Search and apply for jobs across the UK.',                                    position: { x: 300,  y: 800 } },
 
-  { id: 'ptax',          name: 'Personal tax account',     dept: 'hmrc',    url: 'https://www.gov.uk/personal-tax-account',               summary: 'Manage your tax records, check your Income Tax, and update HMRC.',            position: { x: 560, y: 150 } },
-  { id: 'marriage',      name: 'Marriage Allowance',       dept: 'hmrc',    url: 'https://www.gov.uk/marriage-allowance',                 summary: 'Transfer part of your Personal Allowance to your spouse or civil partner.',   position: { x: 720, y: 340 } },
-  { id: 'childcare',     name: 'Childcare account',        dept: 'hmrc',    url: 'https://www.gov.uk/sign-in-childcare-account',          summary: 'Manage Tax-Free Childcare and 30 hours free childcare.',                      position: { x: 550, y: 520 } },
+  { id: 'ptax',          name: 'Personal tax account',     dept: 'hmrc',    url: 'https://www.gov.uk/personal-tax-account',               summary: 'Manage your tax records, check your Income Tax, and update HMRC.',            position: { x: 780,  y: 195 } },
+  { id: 'marriage',      name: 'Marriage Allowance',       dept: 'hmrc',    url: 'https://www.gov.uk/marriage-allowance',                 summary: 'Transfer part of your Personal Allowance to your spouse or civil partner.',   position: { x: 1020, y: 490 } },
+  { id: 'childcare',     name: 'Childcare account',        dept: 'hmrc',    url: 'https://www.gov.uk/sign-in-childcare-account',          summary: 'Manage Tax-Free Childcare and 30 hours free childcare.',                      position: { x: 760,  y: 785 } },
 
-  { id: 'passport',      name: 'Renew adult passport',     dept: 'hmpo',    url: 'https://www.gov.uk/renew-adult-passport',               summary: 'Renew a UK adult passport online or by post.',                                position: { x: 1030, y: 130 } },
-  { id: 'lost-passport', name: 'Report a lost passport',   dept: 'hmpo',    url: 'https://www.gov.uk/report-a-lost-or-stolen-passport',   summary: 'Cancel a lost or stolen passport so it can’t be used.',                       position: { x: 1200, y: 300 } },
+  { id: 'passport',      name: 'Renew adult passport',     dept: 'hmpo',    url: 'https://www.gov.uk/renew-adult-passport',               summary: 'Renew a UK adult passport online or by post.',                                position: { x: 1440, y: 160 } },
+  { id: 'lost-passport', name: 'Report a lost passport',   dept: 'hmpo',    url: 'https://www.gov.uk/report-a-lost-or-stolen-passport',   summary: 'Cancel a lost or stolen passport so it can’t be used.',                       position: { x: 1690, y: 435 } },
 
-  { id: 'driving-test',  name: 'Book a driving test',      dept: 'driving', url: 'https://www.gov.uk/book-driving-test',                  summary: 'Book a practical driving test for a car.',                                    position: { x: 1080, y: 500 } },
-  { id: 'mot',           name: 'Check MOT status',         dept: 'driving', url: 'https://www.gov.uk/check-mot-status',                   summary: 'Check the MOT status and history of a vehicle.',                              position: { x: 1240, y: 660 } },
+  { id: 'driving-test',  name: 'Book a driving test',      dept: 'driving', url: 'https://www.gov.uk/book-driving-test',                  summary: 'Book a practical driving test for a car.',                                    position: { x: 1480, y: 645 } },
+  { id: 'mot',           name: 'Check MOT status',         dept: 'driving', url: 'https://www.gov.uk/check-mot-status',                   summary: 'Check the MOT status and history of a vehicle.',                              position: { x: 1720, y: 940 } },
 
-  { id: 'vote',          name: 'Register to vote',         dept: 'civic',   url: 'https://www.gov.uk/register-to-vote',                   summary: 'Register to vote in UK elections and referendums.',                           position: { x: 820, y: 660 } },
-  { id: 'council-tax',   name: 'Council tax',              dept: 'civic',   url: 'https://www.gov.uk/council-tax',                        summary: 'Find your local council and pay your Council Tax.',                           position: { x: 420, y: 700 } },
+  { id: 'vote',          name: 'Register to vote',         dept: 'civic',   url: 'https://www.gov.uk/register-to-vote',                   summary: 'Register to vote in UK elections and referendums.',                           position: { x: 1140, y: 905 } },
+  { id: 'council-tax',   name: 'Council tax',              dept: 'civic',   url: 'https://www.gov.uk/council-tax',                        summary: 'Find your local council and pay your Council Tax.',                           position: { x: 640,  y: 1060 } },
 ]
+
+// WordPress mShots screenshot proxy — free, cached server-side, no key required.
+// Returns a placeholder for a few seconds on first hit for an unseen URL, then the real capture.
+export function previewSrc(url: string, width = 480): string {
+  return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=${width}`
+}
 
 export interface Relationship {
   source: string
