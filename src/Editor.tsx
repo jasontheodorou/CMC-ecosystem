@@ -1,14 +1,20 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { EcosystemMap } from './EcosystemMap'
-import { DEPTS, type Dept, type Service } from './data'
+import {
+  DEPTS,
+  ORGANISATIONS,
+  PARTIES,
+  type Dept,
+  type Organisation,
+  type Party,
+  type Service,
+} from './data'
 import {
   addConnectedPage,
   addMainPage,
   exportAsDataTs,
   exportJson,
-  formatTagInput,
   importJson,
-  parseTagInput,
   removeRelationship,
   removeService,
   resetToDefaults,
@@ -24,7 +30,8 @@ const EMPTY_INPUT: ServiceInput = {
   url: '',
   dept: 'hmrc',
   summary: '',
-  tags: [],
+  organisation: '',
+  party: '',
 }
 
 export function Editor() {
@@ -291,7 +298,8 @@ function PageRow({
                 url: service.url,
                 dept: service.dept,
                 summary: service.summary,
-                tags: service.tags ?? [],
+                organisation: service.organisation ?? '',
+                party: service.party ?? '',
               }}
               onSubmit={(input) => {
                 const result = updateService(service.id, input)
@@ -410,21 +418,16 @@ function AddPageForm({
   onCancel,
 }: AddPageFormProps) {
   const [input, setInput] = useState<ServiceInput>(initial ?? EMPTY_INPUT)
-  const [tagsText, setTagsText] = useState<string>(
-    initial ? formatTagInput(initial.tags) : '',
-  )
   const [label, setLabel] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const withTags: ServiceInput = { ...input, tags: parseTagInput(tagsText) }
-    const result = onSubmit(withTags, includeLabelField ? label : undefined)
+    const result = onSubmit(input, includeLabelField ? label : undefined)
     if (result.ok) {
       setError(null)
       if (!initial) {
         setInput(EMPTY_INPUT)
-        setTagsText('')
         setLabel('')
       }
     } else {
@@ -478,15 +481,46 @@ function AddPageForm({
           rows={2}
         />
       </label>
-      <label className="page-form-field">
-        <span>Tags (comma-separated)</span>
-        <input
-          type="text"
-          value={tagsText}
-          onChange={(e) => setTagsText(e.target.value)}
-          placeholder="e.g. GDS, Claimant  —  or HMCTS, Defendant"
-        />
-      </label>
+      <div className="page-form-row">
+        <label className="page-form-field">
+          <span>Organisation</span>
+          <select
+            value={input.organisation}
+            onChange={(e) =>
+              setInput({
+                ...input,
+                organisation: e.target.value as Organisation | '',
+              })
+            }
+          >
+            <option value="">— none —</option>
+            {ORGANISATIONS.map((org) => (
+              <option key={org} value={org}>
+                {org}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="page-form-field">
+          <span>Party</span>
+          <select
+            value={input.party}
+            onChange={(e) =>
+              setInput({
+                ...input,
+                party: e.target.value as Party | '',
+              })
+            }
+          >
+            <option value="">— none —</option>
+            {PARTIES.map((party) => (
+              <option key={party} value={party}>
+                {party}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       {includeLabelField && (
         <label className="page-form-field">
           <span>Connection label (optional)</span>

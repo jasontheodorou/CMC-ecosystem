@@ -8,6 +8,12 @@ export const DEPTS: Record<Dept, { label: string; color: string; soft: string }>
   civic: { label: 'Civic', color: '#f43f5e', soft: '#ffe4e6' },
 }
 
+export const ORGANISATIONS = ['GDS', 'HMCTS'] as const
+export type Organisation = (typeof ORGANISATIONS)[number]
+
+export const PARTIES = ['Claimant', 'Defendant'] as const
+export type Party = (typeof PARTIES)[number]
+
 export interface Service {
   id: string
   name: string
@@ -15,7 +21,8 @@ export interface Service {
   url: string
   summary: string
   position: { x: number; y: number }
-  tags?: string[]
+  organisation?: Organisation
+  party?: Party
 }
 
 // World layout composed at 16:9 aspect (x span ~1600, y span ~900) so it feels right

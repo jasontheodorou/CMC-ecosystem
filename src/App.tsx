@@ -112,12 +112,21 @@ function MapView({ onRequestEdit }: { onRequestEdit: () => void }) {
                 <div className="detail-dept">{DEPTS[selected.dept].label}</div>
                 <h2 className="detail-title">{selected.name}</h2>
                 <p className="detail-summary">{selected.summary}</p>
-                {selected.tags && selected.tags.length > 0 && (
-                  <ul className="detail-tags" aria-label="Tags">
-                    {selected.tags.map((tag) => (
-                      <li key={tag}>{tag}</li>
-                    ))}
-                  </ul>
+                {(selected.organisation || selected.party) && (
+                  <dl className="detail-labels">
+                    {selected.organisation && (
+                      <div className="detail-label detail-label-org">
+                        <dt>Organisation</dt>
+                        <dd>{selected.organisation}</dd>
+                      </div>
+                    )}
+                    {selected.party && (
+                      <div className="detail-label detail-label-party">
+                        <dt>Party</dt>
+                        <dd>{selected.party}</dd>
+                      </div>
+                    )}
+                  </dl>
                 )}
                 <a
                   className="detail-link"
