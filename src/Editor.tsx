@@ -99,8 +99,7 @@ export function Editor() {
         <div className="editor-title-block">
           <h1>Ecosystem editor</h1>
           <p>
-            Add main pages and their connections. Changes save in your browser —
-            use <strong>Copy as data.ts</strong> to bake them into the repo.
+            Add main pages and their connections. Changes save as you type.
           </p>
         </div>
         {status && (
@@ -108,6 +107,38 @@ export function Editor() {
             {status.text}
           </div>
         )}
+        <div className="editor-advanced">
+          <button
+            type="button"
+            className="editor-advanced-toggle"
+            onClick={() => setAdvancedOpen((v) => !v)}
+            aria-expanded={advancedOpen}
+            aria-label="Advanced options"
+            title="Advanced"
+          >
+            <span aria-hidden="true">⚙</span>
+          </button>
+          {advancedOpen && (
+            <div className="editor-advanced-menu" role="menu">
+              <button type="button" onClick={handleExportJson}>
+                Download backup
+              </button>
+              <button
+                type="button"
+                onClick={() => importFileRef.current?.click()}
+              >
+                Load backup
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyAsDataTs}
+                title="For pasting into src/data.ts in the repo"
+              >
+                Copy as data.ts
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="editor-body">
@@ -167,40 +198,13 @@ export function Editor() {
       </div>
 
       <footer className="editor-actions">
+        <div className="editor-actions-spacer" />
         <button type="button" onClick={handleReset} className="danger">
           Reset to original
         </button>
-        <div className="editor-actions-spacer" />
-        <div className="editor-advanced">
-          <button
-            type="button"
-            className="editor-advanced-toggle"
-            onClick={() => setAdvancedOpen((v) => !v)}
-            aria-expanded={advancedOpen}
-          >
-            {advancedOpen ? '▾' : '▸'} Advanced
-          </button>
-          {advancedOpen && (
-            <div className="editor-advanced-menu" role="menu">
-              <button type="button" onClick={handleExportJson}>
-                Download backup
-              </button>
-              <button
-                type="button"
-                onClick={() => importFileRef.current?.click()}
-              >
-                Load backup
-              </button>
-              <button
-                type="button"
-                onClick={handleCopyAsDataTs}
-                title="For pasting into src/data.ts in the repo"
-              >
-                Copy as data.ts
-              </button>
-            </div>
-          )}
-        </div>
+        <button type="button" onClick={handleSaveAndClose} className="primary">
+          Save to the map →
+        </button>
         <input
           ref={importFileRef}
           type="file"
@@ -212,9 +216,6 @@ export function Editor() {
             e.target.value = ''
           }}
         />
-        <button type="button" onClick={handleSaveAndClose} className="primary">
-          Save to the map →
-        </button>
       </footer>
     </div>
   )

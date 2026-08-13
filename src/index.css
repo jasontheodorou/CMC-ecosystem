@@ -1048,27 +1048,47 @@ button {
   flex: 1;
 }
 
+/* Advanced menu — gear icon in the header, dropdown menu below it */
+
 .editor-advanced {
   position: relative;
+  margin-left: auto;
 }
 
 .editor-advanced-toggle {
-  padding: 8px 14px !important;
-  background: transparent !important;
-  border-color: transparent !important;
-  color: var(--ink-soft) !important;
-  font-size: 12.5px !important;
-  font-weight: 500 !important;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  color: var(--ink-soft);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .editor-advanced-toggle:hover {
-  color: var(--ink) !important;
-  background: #f5f7fb !important;
+  background: #f5f7fb;
+  color: var(--ink);
+  border-color: #cbd5e1;
+  transform: rotate(30deg);
+}
+
+.editor-advanced-toggle[aria-expanded='true'] {
+  background: #eef2ff;
+  color: var(--accent-primary);
+  border-color: #c7d2fe;
 }
 
 .editor-advanced-menu {
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   right: 0;
   background: #ffffff;
   border: 1px solid var(--card-border);
@@ -1082,17 +1102,19 @@ button {
 }
 
 .editor-advanced-menu button {
-  border: none !important;
-  background: transparent !important;
-  padding: 10px 12px !important;
-  text-align: left !important;
-  border-radius: 8px !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: var(--ink) !important;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .editor-advanced-menu button:hover {
-  background: #f1f5f9 !important;
+  background: #f1f5f9;
 }
 
