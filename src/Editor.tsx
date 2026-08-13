@@ -84,6 +84,12 @@ export function Editor() {
     flash('ok', 'Restored the original set')
   }
 
+  function handleSaveAndClose() {
+    // Changes are already applied to the map via auto-save on every edit.
+    // This button is the explicit "commit" moment and returns to the map view.
+    window.location.hash = ''
+  }
+
   return (
     <div className="editor">
       <header className="editor-header">
@@ -161,26 +167,6 @@ export function Editor() {
       </div>
 
       <footer className="editor-actions">
-        <button type="button" onClick={handleExportJson}>
-          Download backup
-        </button>
-        <button
-          type="button"
-          onClick={() => importFileRef.current?.click()}
-        >
-          Load backup
-        </button>
-        <input
-          ref={importFileRef}
-          type="file"
-          accept="application/json"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) handleImportJson(file)
-            e.target.value = ''
-          }}
-        />
         <button type="button" onClick={handleReset} className="danger">
           Reset to original
         </button>
@@ -196,6 +182,15 @@ export function Editor() {
           </button>
           {advancedOpen && (
             <div className="editor-advanced-menu" role="menu">
+              <button type="button" onClick={handleExportJson}>
+                Download backup
+              </button>
+              <button
+                type="button"
+                onClick={() => importFileRef.current?.click()}
+              >
+                Load backup
+              </button>
               <button
                 type="button"
                 onClick={handleCopyAsDataTs}
@@ -206,6 +201,20 @@ export function Editor() {
             </div>
           )}
         </div>
+        <input
+          ref={importFileRef}
+          type="file"
+          accept="application/json"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleImportJson(file)
+            e.target.value = ''
+          }}
+        />
+        <button type="button" onClick={handleSaveAndClose} className="primary">
+          Save to the map →
+        </button>
       </footer>
     </div>
   )
