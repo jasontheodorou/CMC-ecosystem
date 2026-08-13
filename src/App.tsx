@@ -1,23 +1,74 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { EcosystemMap } from './EcosystemMap'
-import { DEPTS, RELATIONSHIPS, SERVICES, type Service } from './data'
+import { DEPTS, type Service } from './data'
 import { Preview } from './Preview'
+import { useMapData } from './store'
+import { Editor } from './Editor'
+import { authenticateEdit, isEditAuthenticated } from './auth'
+
+type Route = 'map' | 'edit'
+
+function routeFromHash(): Route {
+  return typeof window !== 'undefined' && window.location.hash === '#edit'
+    ? 'edit'
+    : 'map'
+}
 
 export default function App() {
+  const [route, setRoute] = useState<Route>(routeFromHash)
+  const [authed, setAuthed] = useState<boolean>(() => isEditAuthenticated())
+
+  useEffect(() => {
+    const onHashChange = () => setRoute(routeFromHash())
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
+
+  // Gate direct URL access to #edit — someone bookmarks or shares the link and
+  // lands on it without going through the "Edit" chip.
+  useEffect(() => {
+    if (route !== 'edit' || authed) return
+    if (authenticateEdit()) {
+      setAuthed(true)
+    } else {
+      window.location.hash = ''
+    }
+  }, [route, authed])
+
+  const handleRequestEdit = () => {
+    if (authed) {
+      window.location.hash = 'edit'
+      return
+    }
+    if (authenticateEdit()) {
+      setAuthed(true)
+      window.location.hash = 'edit'
+    }
+  }
+
+  if (route === 'edit' && authed) {
+    return <Editor />
+  }
+
+  return <MapView onRequestEdit={handleRequestEdit} />
+}
+
+function MapView({ onRequestEdit }: { onRequestEdit: () => void }) {
+  const { services, relationships } = useMapData()
   const [selectedId, setSelectedId] = useState<string | null>('ptax')
 
-  const selected = SERVICES.find((s) => s.id === selectedId) ?? null
+  const selected = services.find((s) => s.id === selectedId) ?? null
 
   const related = useMemo<Service[]>(() => {
     if (!selected) return []
-    const ids = RELATIONSHIPS.filter(
-      (r) => r.source === selected.id || r.target === selected.id,
-    ).map((r) => (r.source === selected.id ? r.target : r.source))
+    const ids = relationships
+      .filter((r) => r.source === selected.id || r.target === selected.id)
+      .map((r) => (r.source === selected.id ? r.target : r.source))
     return ids
-      .map((id) => SERVICES.find((s) => s.id === id))
+      .map((id) => services.find((s) => s.id === id))
       .filter((s): s is Service => Boolean(s))
-  }, [selected])
+  }, [selected, relationships, services])
 
   return (
     <div className="app">
@@ -25,9 +76,17 @@ export default function App() {
         <span className="title-dot" />
         <div>
           <div className="title-primary">GOV.UK Ecosystem</div>
-          <div className="title-secondary">Click a node, or drag to reposition</div>
+          <div className="title-secondary">Click a node to explore</div>
         </div>
       </div>
+      <button
+        type="button"
+        className="edit-chip"
+        onClick={onRequestEdit}
+        aria-label="Edit the ecosystem"
+      >
+        <span className="edit-chip-dot" /> Edit
+      </button>
       <div className="app-body">
         <div className="map-region">
           <div className="map-canvas">

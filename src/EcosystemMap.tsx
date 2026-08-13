@@ -1,27 +1,18 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
   Controls,
+  useReactFlow,
   useStore,
   type Edge,
   type Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { RELATIONSHIPS, SERVICES } from './data'
+import { useMapData } from './store'
 import { ServiceNode } from './ServiceNode'
 
 const nodeTypes = { service: ServiceNode }
-
-// Layout centre — origin of the zoom-driven fan-out effect.
-const LAYOUT_CENTER = (() => {
-  const xs = SERVICES.map((s) => s.position.x)
-  const ys = SERVICES.map((s) => s.position.y)
-  return {
-    x: (Math.min(...xs) + Math.max(...xs)) / 2,
-    y: (Math.min(...ys) + Math.max(...ys)) / 2,
-  }
-})()
 
 // How much extra outward spread per unit of zoom above 1.0. Gentle so nodes never
 // spread far past the initial fit — just enough to feel like Google-Maps clustering easing.
@@ -30,30 +21,56 @@ const FAN_STRENGTH = 0.12
 interface EcosystemMapProps {
   selectedId: string | null
   onSelect: (id: string | null) => void
+  interactive?: boolean
 }
 
-function MapContent({ selectedId, onSelect }: EcosystemMapProps) {
-  // Reactive to viewport zoom — nodes fan outward from LAYOUT_CENTER as you zoom in.
+function MapContent({ selectedId, onSelect, interactive = true }: EcosystemMapProps) {
+  const { services, relationships } = useMapData()
+
+  // Layout centre — origin of the zoom-driven fan-out effect. Recomputes when services change
+  // (which is rare enough — only during authoring — that this stays cheap).
+  const layoutCenter = useMemo(() => {
+    if (services.length === 0) return { x: 0, y: 0 }
+    const xs = services.map((s) => s.position.x)
+    const ys = services.map((s) => s.position.y)
+    return {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    }
+  }, [services])
+
+  // Reactive to viewport zoom — nodes fan outward from layoutCenter as you zoom in.
   const zoom = useStore((state) => state.transform[2])
+
+  // Refit whenever the services list changes size (add / remove) so newly added
+  // pages become visible without needing to reload.
+  const reactFlow = useReactFlow()
+  useEffect(() => {
+    if (services.length === 0) return
+    const id = window.setTimeout(() => {
+      reactFlow.fitView({ padding: 0.15, duration: 300 })
+    }, 20)
+    return () => window.clearTimeout(id)
+  }, [services.length, reactFlow])
 
   const nodes = useMemo<Node[]>(() => {
     const fan = Math.max(0, zoom - 1) * FAN_STRENGTH
     const scale = 1 + fan
-    return SERVICES.map((service, index) => ({
+    return services.map((service, index) => ({
       id: service.id,
       type: 'service',
       position: {
-        x: LAYOUT_CENTER.x + (service.position.x - LAYOUT_CENTER.x) * scale,
-        y: LAYOUT_CENTER.y + (service.position.y - LAYOUT_CENTER.y) * scale,
+        x: layoutCenter.x + (service.position.x - layoutCenter.x) * scale,
+        y: layoutCenter.y + (service.position.y - layoutCenter.y) * scale,
       },
       data: { service, index },
       selected: service.id === selectedId,
     }))
-  }, [zoom, selectedId])
+  }, [zoom, selectedId, services, layoutCenter])
 
   const edges = useMemo<Edge[]>(
     () =>
-      RELATIONSHIPS.map((relationship, index) => {
+      relationships.map((relationship, index) => {
         const highlighted =
           selectedId !== null &&
           (relationship.source === selectedId || relationship.target === selectedId)
@@ -82,7 +99,7 @@ function MapContent({ selectedId, onSelect }: EcosystemMapProps) {
           labelBgBorderRadius: 8,
         }
       }),
-    [selectedId],
+    [selectedId, relationships],
   )
 
   const handleNodeClick = useCallback(
@@ -94,8 +111,8 @@ function MapContent({ selectedId, onSelect }: EcosystemMapProps) {
     <ReactFlow
       nodes={nodes}
       edges={edges}
-      onNodeClick={handleNodeClick}
-      onPaneClick={() => onSelect(null)}
+      onNodeClick={interactive ? handleNodeClick : undefined}
+      onPaneClick={interactive ? () => onSelect(null) : undefined}
       nodeTypes={nodeTypes}
       fitView
       fitViewOptions={{ padding: 0.15 }}
@@ -103,10 +120,14 @@ function MapContent({ selectedId, onSelect }: EcosystemMapProps) {
       maxZoom={2}
       nodesDraggable={false}
       nodesConnectable={false}
-      elementsSelectable
+      elementsSelectable={interactive}
+      panOnDrag={interactive}
+      zoomOnScroll={interactive}
+      zoomOnPinch={interactive}
+      zoomOnDoubleClick={interactive}
       proOptions={{ hideAttribution: true }}
     >
-      <Controls showInteractive={false} position="bottom-right" />
+      {interactive && <Controls showInteractive={false} position="bottom-right" />}
     </ReactFlow>
   )
 }
