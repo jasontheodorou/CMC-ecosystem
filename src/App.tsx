@@ -112,6 +112,13 @@ function MapView({ onRequestEdit }: { onRequestEdit: () => void }) {
                 <div className="detail-dept">{DEPTS[selected.dept].label}</div>
                 <h2 className="detail-title">{selected.name}</h2>
                 <p className="detail-summary">{selected.summary}</p>
+                {selected.tags && selected.tags.length > 0 && (
+                  <ul className="detail-tags" aria-label="Tags">
+                    {selected.tags.map((tag) => (
+                      <li key={tag}>{tag}</li>
+                    ))}
+                  </ul>
+                )}
                 <a
                   className="detail-link"
                   href={selected.url}

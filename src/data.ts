@@ -15,6 +15,7 @@ export interface Service {
   url: string
   summary: string
   position: { x: number; y: number }
+  tags?: string[]
 }
 
 // World layout composed at 16:9 aspect (x span ~1600, y span ~900) so it feels right

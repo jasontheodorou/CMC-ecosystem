@@ -6,7 +6,9 @@ import {
   addMainPage,
   exportAsDataTs,
   exportJson,
+  formatTagInput,
   importJson,
+  parseTagInput,
   removeRelationship,
   removeService,
   resetToDefaults,
@@ -22,6 +24,7 @@ const EMPTY_INPUT: ServiceInput = {
   url: '',
   dept: 'hmrc',
   summary: '',
+  tags: [],
 }
 
 export function Editor() {
@@ -288,6 +291,7 @@ function PageRow({
                 url: service.url,
                 dept: service.dept,
                 summary: service.summary,
+                tags: service.tags ?? [],
               }}
               onSubmit={(input) => {
                 const result = updateService(service.id, input)
@@ -406,16 +410,21 @@ function AddPageForm({
   onCancel,
 }: AddPageFormProps) {
   const [input, setInput] = useState<ServiceInput>(initial ?? EMPTY_INPUT)
+  const [tagsText, setTagsText] = useState<string>(
+    initial ? formatTagInput(initial.tags) : '',
+  )
   const [label, setLabel] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const result = onSubmit(input, includeLabelField ? label : undefined)
+    const withTags: ServiceInput = { ...input, tags: parseTagInput(tagsText) }
+    const result = onSubmit(withTags, includeLabelField ? label : undefined)
     if (result.ok) {
       setError(null)
       if (!initial) {
         setInput(EMPTY_INPUT)
+        setTagsText('')
         setLabel('')
       }
     } else {
@@ -467,6 +476,15 @@ function AddPageForm({
           onChange={(e) => setInput({ ...input, summary: e.target.value })}
           placeholder="One sentence explaining what the service does."
           rows={2}
+        />
+      </label>
+      <label className="page-form-field">
+        <span>Tags (comma-separated)</span>
+        <input
+          type="text"
+          value={tagsText}
+          onChange={(e) => setTagsText(e.target.value)}
+          placeholder="e.g. GDS, Claimant  —  or HMCTS, Defendant"
         />
       </label>
       {includeLabelField && (

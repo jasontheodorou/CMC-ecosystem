@@ -20,6 +20,7 @@ export interface ServiceInput {
   url: string
   dept: Dept
   summary: string
+  tags: string[]
 }
 
 const listeners = new Set<() => void>()
@@ -121,6 +122,23 @@ function hubConnectionCount(relationships: Relationship[], hubId: string): numbe
   return relationships.filter((r) => r.source === hubId || r.target === hubId).length
 }
 
+function normalizeTags(tags: string[] | undefined): string[] | undefined {
+  if (!tags) return undefined
+  const cleaned = tags.map((t) => t.trim()).filter((t) => t.length > 0)
+  return cleaned.length ? Array.from(new Set(cleaned)) : undefined
+}
+
+export function parseTagInput(value: string): string[] {
+  return value
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+}
+
+export function formatTagInput(tags: string[] | undefined): string {
+  return tags ? tags.join(', ') : ''
+}
+
 function validateInput(input: ServiceInput): string | null {
   if (!input.name.trim()) return 'Name is required'
   if (!input.url.trim()) return 'URL is required'
@@ -145,6 +163,7 @@ export function addMainPage(input: ServiceInput): { ok: true; id: string } | { o
     dept: input.dept,
     summary: input.summary.trim(),
     position: positionForNewHub(currentState.services),
+    tags: normalizeTags(input.tags),
   }
   commit({
     services: [...currentState.services, service],
@@ -179,6 +198,7 @@ export function addConnectedPage(
       dept: input.dept,
       summary: input.summary.trim(),
       position: positionForNewSpoke(hub, hubConnectionCount(currentState.relationships, hubId)),
+      tags: normalizeTags(input.tags),
     }
     services = [...services, service]
     targetId = id
@@ -220,6 +240,7 @@ export function updateService(
           url: input.url.trim(),
           dept: input.dept,
           summary: input.summary.trim(),
+          tags: normalizeTags(input.tags),
         }
       : s,
   )
@@ -280,14 +301,16 @@ export function importJson(json: string): { ok: true } | { ok: false; error: str
 export function exportAsDataTs(): string {
   const stringify = (v: string) => JSON.stringify(v)
   const services = currentState.services
-    .map(
-      (s) =>
-        `  { id: ${stringify(s.id)}, name: ${stringify(s.name)}, dept: ${stringify(
-          s.dept,
-        )}, url: ${stringify(s.url)}, summary: ${stringify(
-          s.summary,
-        )}, position: { x: ${Math.round(s.position.x)}, y: ${Math.round(s.position.y)} } },`,
-    )
+    .map((s) => {
+      const tags = s.tags && s.tags.length > 0
+        ? `, tags: [${s.tags.map(stringify).join(', ')}]`
+        : ''
+      return `  { id: ${stringify(s.id)}, name: ${stringify(s.name)}, dept: ${stringify(
+        s.dept,
+      )}, url: ${stringify(s.url)}, summary: ${stringify(
+        s.summary,
+      )}, position: { x: ${Math.round(s.position.x)}, y: ${Math.round(s.position.y)} }${tags} },`
+    })
     .join('\n')
   const relationships = currentState.relationships
     .map((r) => {
