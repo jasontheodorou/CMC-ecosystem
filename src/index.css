@@ -93,20 +93,43 @@ button {
 }
 
 .side-panel {
-  width: clamp(240px, 24vw, 340px);
+  width: clamp(200px, 28vw, 320px);
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-left: 1px solid rgba(30, 60, 100, 0.06);
-  padding: 32px 24px;
+  padding: 24px 18px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
-@media (max-width: 600px) {
+/* When the iframe is too narrow for a docked sidebar, the panel becomes an
+   overlay that slides in from the right only when a node is selected. Uses
+   :has() to detect selection so the map keeps the full width otherwise. */
+@media (max-width: 640px) {
   .side-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(84vw, 320px);
+    z-index: 20;
+    border-left: 1px solid var(--card-border);
+    box-shadow: -8px 0 24px rgba(30, 60, 100, 0.12);
+    background: rgba(255, 255, 255, 0.94);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+
+  .app-body:has(.detail-card) .side-panel {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .side-panel-empty {
     display: none;
   }
 }
@@ -327,7 +350,7 @@ button {
 
 .detail-title {
   margin: 0 0 10px;
-  font-size: 20px;
+  font-size: clamp(16px, 2vw, 20px);
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
@@ -336,9 +359,10 @@ button {
 
 .detail-summary {
   margin: 0 0 18px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--ink);
   line-height: 1.5;
+  word-break: break-word;
 }
 
 .detail-labels {
@@ -490,7 +514,7 @@ button {
 .edit-chip {
   position: absolute;
   top: 24px;
-  right: calc(clamp(240px, 24vw, 340px) + 24px);
+  right: calc(clamp(200px, 28vw, 320px) + 24px);
   z-index: 5;
   display: inline-flex;
   align-items: center;
@@ -521,7 +545,7 @@ button {
   background: var(--accent-primary);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .edit-chip {
     right: 24px;
   }
